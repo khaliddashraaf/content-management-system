@@ -1,0 +1,167 @@
+﻿CREATE TABLE Users (
+id INT IDENTITY(1,1),
+firstName VARCHAR(20) NOT NULL,
+lastName VARCHAR(20) NOT NULL,
+password VARCHAR(20) NOT NULL,
+gender BIT NOT NULL,
+email VARCHAR(50) NOT NULL,
+address VARCHAR(10) NOT NULL,
+PRIMARY KEY(id)
+);
+
+CREATE TABLE Instructor (
+id INT,
+rating DECIMAL (2,1),
+PRIMARY KEY(id),
+FOREIGN KEY(id) REFERENCES Users ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE UserMobileNumber (
+id INT,
+mobileNumber VARCHAR(20)
+PRIMARY KEY(id, mobileNumber),
+FOREIGN KEY(id) REFERENCES Users ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE Student (
+id INT,
+gpa DECIMAL (2,1),
+PRIMARY KEY(id),
+FOREIGN KEY(id) REFERENCES Users ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE Admin (
+id INT,
+PRIMARY KEY(id),
+FOREIGN KEY(id) REFERENCES Users ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE Course (
+id INT IDENTITY,
+creditHours INT NOT NULL,
+name VARCHAR(10) NOT NULL,
+courseDescription VARCHAR(200),
+price DECIMAL(6,2) NOT NULL,
+content VARCHAR(20),
+adminId INT,
+instructorId INT NOT NULL,
+accepted BIT,
+PRIMARY KEY(id),
+FOREIGN KEY(adminId) REFERENCES Admin,
+FOREIGN KEY(instructorId) REFERENCES Instructor,
+);
+
+CREATE TABLE Assignment (
+cid INT,
+number INT,
+type VARCHAR(10),
+fullGrade INT NOT NULL,
+weight DECIMAL(4,1) NOT NULL,
+deadline DATETIME NOT NULL,
+content VARCHAR(200) NOT NULL,
+PRIMARY KEY(cid, number, type),
+FOREIGN KEY(cid) REFERENCES Course ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE Feedback (
+cid INT,
+number INT IDENTITY,
+comments VARCHAR(100) NOT NULL,
+numberOfLikes INT DEFAULT 0,
+sid INT NOT NULL,
+PRIMARY KEY(cid, number),
+FOREIGN KEY(cid) REFERENCES Course ON DELETE CASCADE ON UPDATE CASCADE,
+FOREIGN KEY(sid) REFERENCES Student ON DELETE CASCADE ON UPDATE CASCADE,
+);
+
+CREATE TABLE Promocode (
+code VARCHAR(6),
+issueDate DATETIME NOT NULL,
+expiryDate DATETIME NOT NULL,
+discount DECIMAL(4,2) NOT NULL,
+adminId INT NOT NULL,
+PRIMARY KEY(code),
+FOREIGN KEY(adminId) REFERENCES Admin ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE StudentHasPromcode (
+sid INT,
+code VARCHAR(6),
+PRIMARY KEY(sid, code),
+FOREIGN KEY(sid) REFERENCES Student,
+FOREIGN KEY(code) REFERENCES Promocode ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE CreditCard (
+number VARCHAR(15),
+cardHolderName VARCHAR(16) NOT NULL,
+expiryDate DATETIME NOT NULL,
+cvv VARCHAR(3) NOT NULL,
+PRIMARY KEY(number)
+);
+
+CREATE TABLE StudentAddCreditCard (
+sid INT,
+creditCardNumber VARCHAR(15),
+PRIMARY KEY(sid, creditCardNumber),
+FOREIGN KEY(sid) REFERENCES Student ON DELETE CASCADE ON UPDATE CASCADE,
+FOREIGN KEY(creditCardNumber) REFERENCES CreditCard ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE StudentTakeCourse (
+sid INT,
+cid INT,
+instId INT,
+payedfor BIT DEFAULT 0,
+grade INT,
+PRIMARY KEY(sid, cid, instId),
+FOREIGN KEY(sid) REFERENCES Student,
+FOREIGN KEY(cid) REFERENCES Course ON DELETE CASCADE ON UPDATE CASCADE,
+FOREIGN KEY(instId) REFERENCES Instructor
+);
+
+CREATE TABLE StudentTakeAssignment (
+sid INT,
+cid INT,
+assignmentNumber INT,
+assignmentType VARCHAR(10),
+grade DECIMAL (5,2) DEFAULT 0,
+PRIMARY KEY(sid, cid, assignmentNumber, assignmentType, grade),
+FOREIGN KEY(sid) REFERENCES Student,
+FOREIGN KEY(cid, assignmentNumber, assignmentType) REFERENCES Assignment,
+);
+
+
+CREATE TABLE StudentRateInstructor (
+sid INT,
+instId INT,
+rate DECIMAL (2,1) NOT NULL,
+PRIMARY KEY(sid, instId),
+FOREIGN KEY(sid) REFERENCES Student,
+FOREIGN KEY(instId) REFERENCES Instructor
+);
+
+CREATE TABLE StudentCertifyCourse (
+sid INT,
+cid INT,
+issueDate DATETIME NOT NULL,
+PRIMARY KEY(sid, cid),
+FOREIGN KEY(sid) REFERENCES Student,
+FOREIGN KEY(cid) REFERENCES Course ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE CoursePrerequisiteCourse (
+cid INT,
+prerequisiteId INT,
+PRIMARY KEY(cid, prerequisiteId),
+FOREIGN KEY(cid) REFERENCES Course ON DELETE CASCADE ON UPDATE CASCADE,
+FOREIGN KEY(prerequisiteId) REFERENCES Course
+);
+
+CREATE TABLE InstructorTeachCourse (
+instId INT,
+cid INT,
+PRIMARY KEY(instId, cid),
+FOREIGN KEY(instId) REFERENCES Instructor,
+FOREIGN KEY(cid) REFERENCES Course ON DELETE CASCADE ON UPDATE CASCADE
+);
